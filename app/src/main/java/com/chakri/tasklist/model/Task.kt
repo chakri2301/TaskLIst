@@ -1,10 +1,11 @@
 package com.chakri.tasklist.model
 
-import java.time.Instant
+import kotlin.time.Instant
 
 
 data class Task(
-    val name:String,
-    val description:String,
-    val deadline: Instant
+    val name: String,
+    val description: String,
+    val deadline: Instant?,
+    val percentComplete: Int
 )
