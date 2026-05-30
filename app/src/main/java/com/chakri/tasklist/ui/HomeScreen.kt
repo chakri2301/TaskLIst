@@ -4,13 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +20,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.chakri.tasklist.R
@@ -30,25 +33,43 @@ fun HomeScreen(
     tasks: List<Task>,
     searchString: String,
     onSearchStringChanged: (String) -> Unit,
-    onTaskOpenedClicked: (Task) -> Unit,
+    onTaskOpenedClicked: (Int) -> Unit,
+    onCreateClicked:()->Unit,
     modifier: Modifier = Modifier
 ) {
-    Column {
-        TextField(
-            value = searchString,
-            onValueChange = { newValue -> onSearchStringChanged(newValue) },
-            label = { Text("Search") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        LazyColumn(
-            modifier = modifier
-        ) {
-            items(tasks) { task ->
-                TaskCard(
-                    task = task,
-                    onTaskOpenedClicked = {onTaskOpenedClicked(task)}
-                )
+    Box(modifier = modifier) {
+        Column {
+            TextField(
+                value = searchString,
+                onValueChange = { newValue -> onSearchStringChanged(newValue) },
+                label = { Text("Search") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
+                items(tasks.size) { i ->
+                    TaskCard(
+                        task = tasks[i],
+                        onTaskOpenedClicked = { onTaskOpenedClicked(i) }
+                    )
+                }
+                item{
+                    Spacer(
+                        modifier = Modifier.size(128.dp)
+                    )
+                }
             }
+
+        }
+        FloatingActionButton(
+            onClick = onCreateClicked,
+            modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.add),
+                contentDescription = "Add Task"
+            )
         }
     }
 }
@@ -117,6 +138,6 @@ fun TaskCard(
 fun CardPreview() {
     TaskCard(
         onTaskOpenedClicked = {},
-        task = Task("car", "absfvuyb efvsjd", null, 20)
+        task = Task("car", "absfvuyb efvsjd", 20, 100)
     )
 }

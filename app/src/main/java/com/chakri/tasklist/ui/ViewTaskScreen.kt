@@ -8,25 +8,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.chakri.tasklist.model.Task
 
 @Composable
 fun ViewTaskScreen(
     task: Task,
     onCancelClicked:()->Unit,
-    onSaveClicked:(Int)->Unit
+    onSaveClicked:(Int)->Unit,
+    onDeleteClicked:()->Unit
 ) {
-    var finalPercent by remember { mutableStateOf(task.percentComplete.toFloat()) }
+    var finalPercent by remember { mutableFloatStateOf(task.percentComplete.toFloat()) }
     Column (
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier.fillMaxSize()
@@ -52,24 +50,16 @@ fun ViewTaskScreen(
                 text = "Percentage Completed:",
                 style= MaterialTheme.typography.titleLarge
             )
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Slider(
-                    steps = 9,
-                    valueRange = 0f..100f,
-                    value = finalPercent,
-                    onValueChange = {
-                        finalPercent = it
-                    },
-                    modifier = Modifier.fillMaxWidth(0.8f)
-                )
-                Text(
-                    text = "${(finalPercent).toInt()}%",
-                    modifier = Modifier.weight(0.2f, fill = false)
-                )
+            PercentComposable(
+                percent = finalPercent,
+                onPercentChange = {
+                    finalPercent = it
+                }
+            )
+            Button(
+                onClick = onDeleteClicked
+            ){
+                Text("Delete")
             }
         }
         Row(modifier = Modifier.fillMaxWidth()){
@@ -81,7 +71,7 @@ fun ViewTaskScreen(
             }
             Button(
                 onClick = {onSaveClicked((finalPercent).toInt())},
-                enabled = task.percentComplete != (finalPercent).toInt(),
+                enabled = task.percentComplete != (finalPercent).toInt().toShort(),
                 modifier = Modifier.weight(0.5f)
             ) {
                 Text("Save")

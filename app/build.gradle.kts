@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 android {
@@ -51,7 +52,13 @@ dependencies {
     // Jetpack Compose integration
     implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
+    //retrofit
+    implementation(libs.retrofit2.retrofit)
+    //seri
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.okhttp)
     androidTestImplementation(platform(libs.androidx.compose.bom))
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

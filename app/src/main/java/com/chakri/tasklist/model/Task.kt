@@ -1,11 +1,18 @@
 package com.chakri.tasklist.model
 
-import kotlin.time.Instant
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import java.util.Date
 
-
+@Serializable
 data class Task(
     val name: String,
     val description: String,
-    val deadline: Instant?,
-    val percentComplete: Int
+    @SerialName("percent")
+    val percentComplete: Short,
+    val deadline: Long
+)
+@Serializable
+data class TaskName(
+    val name:String
 )

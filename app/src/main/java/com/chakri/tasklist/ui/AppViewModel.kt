@@ -1,62 +1,93 @@
 package com.chakri.tasklist.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.chakri.tasklist.TaskDataApplication
+import com.chakri.tasklist.data.FakeTaskRepository
+import com.chakri.tasklist.data.TaskRepository
+import com.chakri.tasklist.data.TransactionState
 import com.chakri.tasklist.model.Task
 import com.chakri.tasklist.model.UIState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Instant
+import kotlinx.coroutines.launch
 
 
-class AppViewModel: ViewModel() {
+class AppViewModel(val taskRepository: TaskRepository) : ViewModel() {
     private var _uiState = MutableStateFlow(UIState(searchString = ""))
     var uiState: StateFlow<UIState> = _uiState.asStateFlow()
-    init{
-        createTask("Ktor", "Create a ktor server1", Clock.System.now()+5.days, 20)
-        createTask("Ktor", "Create a ktor server2", Clock.System.now()+5.days, 20)
-        createTask("Ktor1", "Create a ktor server", Clock.System.now()+5.days, 20)
-        createTask("Rooms", "Persistence in app", Clock.System.now()+5.days, 50)
 
-    }
-    fun updateCompletion(finalPercent:Int){
-        _uiState.update {
-            it.copy(
-                currentTask = _uiState.value.currentTask.copy(percentComplete = finalPercent),
-                taskList = _uiState.value.taskList.map {task->
-                    if(task.name.equals(_uiState.value.currentTask.name)){newTask}else{task}
-                }
-            )
-        }
-    }
-    fun setCurrentTask(task: Task){
-        _uiState.update {
-            it.copy(
-                currentTask = task
-            )
-        }
-    }
-    fun createTask(name:String, description:String, deadline: Instant?, percent: Int){
-        if(_uiState.value.taskList.find{it.name == name} == null || _uiState.value.taskList.isEmpty()) {
-            val newTask = Task(name, description, deadline, percent)
+    init {
+        viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    taskList = uiState.value.taskList + newTask
+                    taskList = taskRepository.getAllTasks()
                 )
             }
         }
     }
-    fun setSearchString(search:String){
+    private fun updateList(){
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    taskList = taskRepository.getAllTasks()
+                )
+            }
+        }
+    }
+    fun addTask(task:Task): TransactionState{
+        var status= TransactionState.Success
+        viewModelScope.launch {
+            status = taskRepository.createTask(task)
+            updateList()
+        }
+        return status
+    }
+    fun updateTask(task:Task): TransactionState{
+        var status= TransactionState.Success
+        viewModelScope.launch {
+            status = taskRepository.updateTask(_uiState.value.currentTask,task)
+            updateList()
+        }
+        return status
+    }
+    fun deleteTask(task:Task): TransactionState{
+        var status= TransactionState.Success
+        viewModelScope.launch {
+            status = taskRepository.deleteTask(_uiState.value.currentTask,task)
+            updateList()
+        }
+        return status
+    }
+    fun setCurrentTask(index: Int) {
+        _uiState.update {
+            it.copy(
+                currentTask = index
+            )
+        }
+    }
+
+    fun setSearchString(search: String) {
         _uiState.update {
             it.copy(
                 searchString = search
             )
         }
     }
-    fun isTaskVisible(task:Task):Boolean{
-        return task.name.contains(uiState.value.searchString, ignoreCase = true)
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val appApplication = (this[APPLICATION_KEY] as TaskDataApplication)
+                val taskRepository = appApplication.appContainer.networkTaskRepository
+                AppViewModel(taskRepository)
+            }
+        }
     }
 }
