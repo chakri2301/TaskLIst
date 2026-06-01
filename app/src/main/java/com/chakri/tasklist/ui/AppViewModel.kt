@@ -25,7 +25,14 @@ class AppViewModel(
     val networkTaskRepository: NetworkTaskRepository,
     val dbTaskRepository: DBTaskRepository
 ) : ViewModel() {
-    private var _uiState = MutableStateFlow(UIState(searchString = "", errorString = null, currentScreen = AppScreens.Home))
+    private var _uiState = MutableStateFlow(
+        UIState(
+            searchString = "",
+            errorString = null,
+            currentScreen = AppScreens.Home,
+            netAvailable = false
+        )
+    )
     fun updateCurrentScreen(screen: AppScreens){
         _uiState.update {
             it.copy(
@@ -34,20 +41,37 @@ class AppViewModel(
         }
     }
     var uiState: StateFlow<UIState> = _uiState.asStateFlow()
-    init {
+    fun updateErrorText(text:String?){
+        _uiState.update {
+            it.copy(
+                errorString = text
+            )
+        }
+    }
+    fun syncServer(){
         viewModelScope.launch {
-            val tasklist: List<Task> = if (networkTaskRepository.checkConnectivity()) {
+            var tasklist: List<Task>
+            val isNet: Boolean
+            if (networkTaskRepository.checkConnectivity()) {
                 dbTaskRepository.clearDb()
-                networkTaskRepository.getAllTasks()
+                tasklist = networkTaskRepository.getAllTasks()
+                for(tk in tasklist){dbTaskRepository.createTask(tk)}
+                isNet = true
             }else{
-                dbTaskRepository.getAllTasks()
+                tasklist = dbTaskRepository.getAllTasks()
+                isNet = false
             }
             _uiState.update {
                 it.copy(
-                    taskList = tasklist
+                    taskList = tasklist,
+                    netAvailable = isNet,
+                    errorString = if(isNet) null else "Unable to connect Unavailable. Click to retry"
                 )
             }
         }
+    }
+    init {
+        syncServer()
     }
 
     private fun updateList() {

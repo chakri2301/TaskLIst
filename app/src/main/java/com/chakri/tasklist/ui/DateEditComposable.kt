@@ -2,10 +2,12 @@ package com.chakri.tasklist.ui
 
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,10 +32,9 @@ import java.time.ZoneOffset
 //https://developer.android.com/reference/java/time/format/DateTimeFormatter
 //https://developer.android.com/reference/kotlin/androidx/compose/material3/DatePickerDialog.composable
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
 @Composable
 fun DateEditComposable(
-    updateDayEpoch: (Long?) -> Unit = {},
+    updateDayEpoch: (Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var datePickerState = rememberDatePickerState()
@@ -51,38 +52,39 @@ fun DateEditComposable(
         }
     }
     if (expanded) {
-        Dialog(
-            onDismissRequest = { expanded = false }
-        ) {
-            Column {
-                DatePicker(
-                    state = datePickerState,
-                    dateFormatter = DatePickerDefaults
-                        .dateFormatter(),
-                    modifier = modifier
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Button(
-                        onClick = {
-                            dayEpoch = null
-                            expanded = false
-                        }
+        Card {
+            Dialog(
+                onDismissRequest = { expanded = false }
+            ) {
+                Column {
+                    DatePicker(
+                        state = datePickerState,
+                        dateFormatter = DatePickerDefaults
+                            .dateFormatter(),
+                        modifier = modifier
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Remove Deadline")
-                    }
-                    Button(
-                        onClick = {
-                            expanded = false
-                            val date = datePickerState.getSelectedDate()
-                            dayEpoch = date?.toEpochDay()
-                            updateDayEpoch(dayEpoch)
-
+                        Button(
+                            onClick = {
+                                dayEpoch = null
+                                expanded = false
+                            }
+                        ) {
+                            Text("Remove Deadline")
                         }
-                    ) {
-                        Text("Add Deadline")
+                        Button(
+                            onClick = {
+                                expanded = false
+                                val date = datePickerState.getSelectedDate()
+                                dayEpoch = date?.toEpochDay()
+                                updateDayEpoch(dayEpoch)
+                            }
+                        ) {
+                            Text("Add Deadline")
+                        }
                     }
                 }
             }

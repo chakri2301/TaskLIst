@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -29,7 +30,7 @@ private const val MAX_DESCRIPTION_SIZE = 1000
 @Composable
 fun NewTaskPreview() {
     NewTaskScreen(
-        onCreateClicked = { taks, update -> },
+        onCreateClicked = { taks-> },
         onCancelClicked = {},
     )
 }
@@ -37,17 +38,16 @@ fun NewTaskPreview() {
 
 @Composable
 fun NewTaskScreen(
-    onCreateClicked: suspend (Task, (String) -> Unit) -> Unit,
+    onCreateClicked: suspend (Task) -> Unit,
     onCancelClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var percent by remember { mutableStateOf(0f) }
+    var percent by remember { mutableFloatStateOf(0f) }
     var nameError by remember { mutableStateOf(false) }
-    var guideText by remember { mutableStateOf("") }
     var deadlineDayEpoch by remember { mutableStateOf<Long?>(null) }
-    var scope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = modifier
@@ -84,14 +84,6 @@ fun NewTaskScreen(
                 }
             )
         }
-
-        Text(
-            text = guideText,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Red,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
         Row(modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(
                 onClick = onCancelClicked,
@@ -108,8 +100,7 @@ fun NewTaskScreen(
                                 description,
                                 percent.toInt().toShort(),
                                 deadline = deadlineDayEpoch
-                            ),
-                            { guideText = it }
+                            )
                         )
                     }
                 },

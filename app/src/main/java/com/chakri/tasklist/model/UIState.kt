@@ -7,5 +7,6 @@ data class UIState(
     val taskList: List<Task> = listOf(),
     val searchString:String,
     val errorString: String?,
-    val currentScreen : AppScreens
+    val currentScreen : AppScreens,
+    val netAvailable:Boolean
 )
