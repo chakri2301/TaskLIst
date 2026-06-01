@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinSerialization)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -14,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "com.chakri.tasklist"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -46,9 +47,11 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.material3)
     // Jetpack Compose integration
     implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
@@ -56,6 +59,11 @@ dependencies {
     implementation(libs.retrofit2.retrofit)
     //seri
     implementation(libs.kotlinx.serialization.json)
+    //room
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.room.compiler)
+    implementation(libs.androidx.room.ktx)
+
     implementation(libs.okhttp)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     implementation(libs.retrofit2.kotlinx.serialization.converter)

@@ -5,8 +5,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
@@ -20,9 +23,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.chakri.tasklist.R
@@ -34,17 +36,19 @@ fun HomeScreen(
     searchString: String,
     onSearchStringChanged: (String) -> Unit,
     onTaskOpenedClicked: (Int) -> Unit,
-    onCreateClicked:()->Unit,
+    onCreateClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
         Column {
-            TextField(
-                value = searchString,
-                onValueChange = { newValue -> onSearchStringChanged(newValue) },
-                label = { Text("Search") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row {
+                TextField(
+                    value = searchString,
+                    onValueChange = { newValue -> onSearchStringChanged(newValue) },
+                    label = { Text("Search") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             LazyColumn(
                 modifier = Modifier.weight(1f)
             ) {
@@ -54,7 +58,7 @@ fun HomeScreen(
                         onTaskOpenedClicked = { onTaskOpenedClicked(i) }
                     )
                 }
-                item{
+                item {
                     Spacer(
                         modifier = Modifier.size(128.dp)
                     )
@@ -64,7 +68,12 @@ fun HomeScreen(
         }
         FloatingActionButton(
             onClick = onCreateClicked,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(
+                    bottom = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding(),
+                    end = 4.dp
+                )
         ) {
             Icon(
                 painter = painterResource(R.drawable.add),
@@ -99,8 +108,17 @@ fun TaskCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = task.name, style = MaterialTheme.typography.displaySmall)
-                    //Text(text = timeText, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        text = task.name,
+                        style = MaterialTheme.typography.displaySmall,
+                        textDecoration = if (task.percentComplete!=100.toShort()) TextDecoration.None else TextDecoration.LineThrough
+                    )
+                    if (task.deadline!=null) {
+                        Text(
+                            text = formattedDateFromLong(task.deadline),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
                 Text(text = task.description, style = MaterialTheme.typography.bodyLarge)
 
@@ -138,6 +156,6 @@ fun TaskCard(
 fun CardPreview() {
     TaskCard(
         onTaskOpenedClicked = {},
-        task = Task("car", "absfvuyb efvsjd", 20, 100)
+        task = Task("car", "absfvuyb efvsjd", 20, null)
     )
 }

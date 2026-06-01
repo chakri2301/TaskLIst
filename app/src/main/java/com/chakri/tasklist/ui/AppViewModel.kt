@@ -6,12 +6,14 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.chakri.tasklist.AppScreens
 import com.chakri.tasklist.TaskDataApplication
-import com.chakri.tasklist.data.FakeTaskRepository
-import com.chakri.tasklist.data.TaskRepository
+import com.chakri.tasklist.data.DBTaskRepository
+import com.chakri.tasklist.data.NetworkTaskRepository
 import com.chakri.tasklist.data.TransactionState
 import com.chakri.tasklist.model.Task
 import com.chakri.tasklist.model.UIState
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,52 +21,81 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 
-class AppViewModel(val taskRepository: TaskRepository) : ViewModel() {
-    private var _uiState = MutableStateFlow(UIState(searchString = ""))
+class AppViewModel(
+    val networkTaskRepository: NetworkTaskRepository,
+    val dbTaskRepository: DBTaskRepository
+) : ViewModel() {
+    private var _uiState = MutableStateFlow(UIState(searchString = "", errorString = null, currentScreen = AppScreens.Home))
+    fun updateCurrentScreen(screen: AppScreens){
+        _uiState.update {
+            it.copy(
+                currentScreen = screen
+            )
+        }
+    }
     var uiState: StateFlow<UIState> = _uiState.asStateFlow()
-
     init {
         viewModelScope.launch {
+            val tasklist: List<Task> = if (networkTaskRepository.checkConnectivity()) {
+                dbTaskRepository.clearDb()
+                networkTaskRepository.getAllTasks()
+            }else{
+                dbTaskRepository.getAllTasks()
+            }
             _uiState.update {
                 it.copy(
-                    taskList = taskRepository.getAllTasks()
+                    taskList = tasklist
                 )
             }
         }
     }
-    private fun updateList(){
+
+    private fun updateList() {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    taskList = taskRepository.getAllTasks()
+                    taskList = dbTaskRepository.getAllTasks()
                 )
             }
         }
     }
-    fun addTask(task:Task): TransactionState{
-        var status= TransactionState.Success
+
+    suspend fun addTask(task: Task): TransactionState {
+        var status = TransactionState.Success
+        return viewModelScope.async {
+            status = async{ networkTaskRepository.createTask(task)}.await()
+            if(status == TransactionState.Success){
+                dbTaskRepository.createTask(task)
+                updateList()
+            }
+            return@async status
+        }.await()
+    }
+
+    fun updateTask(task: Task): TransactionState {
+        var status = TransactionState.Success
         viewModelScope.launch {
-            status = taskRepository.createTask(task)
-            updateList()
+            status = networkTaskRepository.updateTask(task)
+            if(status == TransactionState.Success){
+                status = dbTaskRepository.updateTask(task)
+                updateList()
+            }
         }
         return status
     }
-    fun updateTask(task:Task): TransactionState{
-        var status= TransactionState.Success
+
+    fun deleteTask(task: Task): TransactionState {
+        var status = TransactionState.Success
         viewModelScope.launch {
-            status = taskRepository.updateTask(_uiState.value.currentTask,task)
-            updateList()
+            status = networkTaskRepository.deleteTask(task)
+            if (status == TransactionState.Success) {
+                status = dbTaskRepository.deleteTask(task)
+                updateList()
+            }
         }
         return status
     }
-    fun deleteTask(task:Task): TransactionState{
-        var status= TransactionState.Success
-        viewModelScope.launch {
-            status = taskRepository.deleteTask(_uiState.value.currentTask,task)
-            updateList()
-        }
-        return status
-    }
+
     fun setCurrentTask(index: Int) {
         _uiState.update {
             it.copy(
@@ -85,8 +116,12 @@ class AppViewModel(val taskRepository: TaskRepository) : ViewModel() {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val appApplication = (this[APPLICATION_KEY] as TaskDataApplication)
-                val taskRepository = appApplication.appContainer.networkTaskRepository
-                AppViewModel(taskRepository)
+                val dataTaskRepository = appApplication.appContainer.dataTaskRepository
+                val networkTaskRepository = appApplication.appContainer.networkTaskRepository
+                return@initializer AppViewModel(
+                    networkTaskRepository = networkTaskRepository,
+                    dbTaskRepository = dataTaskRepository
+                )
             }
         }
     }

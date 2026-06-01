@@ -1,9 +1,6 @@
-package com.chakri.tasklist.network
+package com.chakri.tasklist.dataApi
 
 import com.chakri.tasklist.model.Task
-import com.chakri.tasklist.model.TaskName
-import retrofit2.Call
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
