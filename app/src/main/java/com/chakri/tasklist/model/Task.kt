@@ -5,17 +5,6 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-enum class TransactionType{
-    CREATE,
-    UPDATE,
-    DELETE
-}
-enum class EntityStatus{
-    C,// create
-    U,// Update
-    D,// Delete
-    N // None
-}
 
 @Serializable
 data class Task(

@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.chakri.tasklist.model.SortBy
 import com.chakri.tasklist.model.Task
 import com.chakri.tasklist.ui.AppViewModel
 import com.chakri.tasklist.ui.HomeScreen
@@ -58,6 +59,10 @@ fun AppPreview() {
             onSearchStringChanged = {},
             onTaskOpenedClicked = {},
             onCreateClicked = {},
+            sortBy = SortBy.Name,
+            setSortBy = {},
+            setIsAscOrder = {},
+            isAscOrder = true,
             tasks = listOf(Task("server", "with ktor", percentComplete = 10, deadline = 100))
         )
     }

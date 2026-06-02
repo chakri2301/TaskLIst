@@ -8,5 +8,14 @@ data class UIState(
     val searchString:String,
     val errorString: String?,
     val currentScreen : AppScreens,
-    val netAvailable:Boolean
+    val netAvailable:Boolean,
+    val loading: Boolean = false,
+    val sortBy: SortBy = SortBy.none,
+    val isAscSort: Boolean = true
 )
+enum class SortBy{
+    Name,
+    Percent,
+    Deadline,
+    none
+}

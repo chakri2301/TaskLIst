@@ -16,7 +16,7 @@ interface AppContainer {
 }
 class DefaultAppContainer(context: Context) : AppContainer{
     //Network retrofit connection
-    private val bASEURL = "http://192.168.1.118:8080/"
+    private val bASEURL = "https://tasklist-9www.onrender.com"
     private val retrofit = Retrofit.Builder()
         .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
         .baseUrl(bASEURL).build()

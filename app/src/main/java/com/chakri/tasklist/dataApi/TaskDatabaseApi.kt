@@ -6,6 +6,7 @@ import androidx.room.Database
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Update
@@ -25,6 +26,8 @@ interface TaskDatabaseApi {
     suspend fun getTaskByName(name: String): List<TaskEntity>
     @Query("DELETE FROM task")
     suspend fun clearDb()
+    @Query("SELECT * FROM task WHERE name like '%' || :searchString || '%'")
+    suspend fun filteredTasksByName(searchString: String): List<TaskEntity>
 }
 
 @Database(entities = [TaskEntity::class], version = 1, exportSchema = false)

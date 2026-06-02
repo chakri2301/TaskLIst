@@ -3,6 +3,7 @@ package com.chakri.tasklist.data
 import android.util.Log
 import com.chakri.tasklist.dataApi.TaskDatabaseApi
 import com.chakri.tasklist.dataApi.TaskNetworkApi
+import com.chakri.tasklist.model.SortBy
 import com.chakri.tasklist.model.Task
 import com.chakri.tasklist.model.toTaskEntity
 
@@ -39,7 +40,7 @@ class NetworkTaskRepository(val api: TaskNetworkApi) : TaskRepository {
         try {
             api.updateTask(task)
             return TransactionState.Success
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.i("chakri", "Fix this")
             e.printStackTrace()
             return TransactionState.Error
@@ -50,7 +51,7 @@ class NetworkTaskRepository(val api: TaskNetworkApi) : TaskRepository {
         try {
             api.delete(task.name)
             return TransactionState.Success
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.i("chakri", "Fix this")
             e.printStackTrace()
             return TransactionState.Error
@@ -61,7 +62,7 @@ class NetworkTaskRepository(val api: TaskNetworkApi) : TaskRepository {
         try {
             api.addTask(task)
             return TransactionState.Success
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.i("chakri", "Fix this")
             e.printStackTrace()
             return TransactionState.Error
@@ -73,9 +74,14 @@ class DBTaskRepository(val api: TaskDatabaseApi) : TaskRepository {
     override suspend fun getAllTasks(): List<Task> {
         return api.getAllTasks().map { it.toTask() }
     }
-    suspend fun clearDb(){
+    suspend fun getFilteredTask(searchString: String): List<Task>{
+        return api.filteredTasksByName(searchString).map { it.toTask() }
+    }
+
+    suspend fun clearDb() {
         api.clearDb()
     }
+
     override suspend fun updateTask(task: Task): TransactionState {
         try {
             api.updateTask(task.toTaskEntity())

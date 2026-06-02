@@ -1,8 +1,6 @@
 package com.chakri.tasklist
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -49,11 +47,16 @@ fun TaskApp(
 ) {
     val uiState by appViewModel.uiState.collectAsState()
     Scaffold(
-        topBar = { TopAppBarComposable(
-            uiState.currentScreen.title,
-            errorText = uiState.errorString ,
-            onCloseClick = {appViewModel.syncServer()}
-        ) },
+        topBar = {
+            TopAppBarComposable(
+                uiState.currentScreen.title,
+                errorText = uiState.errorString,
+                netAvaliable = uiState.netAvailable,
+                onCloseClick = {
+                    appViewModel.syncServer()
+                }
+            )
+        },
         modifier = modifier
     ) { innerPadding ->
         NavHost(
@@ -71,6 +74,12 @@ fun TaskApp(
                         navController.navigate(AppScreens.ViewTask.name)
                     },
                     tasks = uiState.taskList,
+                    sortBy = uiState.sortBy,
+                    setSortBy = {
+                        appViewModel.setSortBy(it)
+                    },
+                    isAscOrder = uiState.isAscSort,
+                    setIsAscOrder = {appViewModel.setSortOrder(it)},
                     modifier = modifier.padding(innerPadding)
                 )
             }
@@ -104,7 +113,7 @@ fun TaskApp(
                             appViewModel.setCurrentTask(0)
                             navController.navigateUp()
                         },
-                        onEditClicked = {navController.navigate(AppScreens.EditTask.name)},
+                        onEditClicked = { navController.navigate(AppScreens.EditTask.name) },
                         modifier = modifier.padding(innerPadding)
                     )
                 }
@@ -116,7 +125,7 @@ fun TaskApp(
                     onCreateClicked = { task: Task ->
                         val state: TransactionState = appViewModel.addTask(task)
                         if (state == TransactionState.Error) {
-                            appViewModel.updateErrorText("Name is duplicate or empty")
+                            appViewModel.updateErrorText("Name is duplicate or empty or No internet")
                         } else {
                             navController.navigateUp()
                         }
@@ -124,16 +133,16 @@ fun TaskApp(
                     modifier = modifier.padding(innerPadding)
                 )
             }
-            composable(AppScreens.EditTask.name){
+            composable(AppScreens.EditTask.name) {
                 EditTaskScreen(
                     task = uiState.taskList[uiState.currentTask],
                     onCancelClicked = {
                         navController.navigateUp()
                     },
                     onChangeClicked = {
-                        if(it.name == uiState.taskList[uiState.currentTask].name){
+                        if (it.name == uiState.taskList[uiState.currentTask].name) {
                             appViewModel.updateTask(it)
-                        }else{
+                        } else {
                             appViewModel.deleteTask(uiState.taskList[uiState.currentTask])
                             appViewModel.addTask(it)
                         }
@@ -149,11 +158,14 @@ fun TaskApp(
 @Composable
 fun TopAppBarComposable(
     title: String,
-    errorText:String?,
-    onCloseClick:()->Unit,
+    errorText: String?,
+    onCloseClick: () -> Unit,
+    netAvaliable: Boolean,
     modifier: Modifier = Modifier
 ) {
-    Column {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Row(
             modifier = modifier.fillMaxWidth()
         ) {
@@ -162,16 +174,16 @@ fun TopAppBarComposable(
                 style = MaterialTheme.typography.displayMedium
             )
         }
-        if(errorText != null){
+        if (errorText != null) {
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Row (
+                Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceAround
-                ){
+                ) {
                     Text(
                         text = errorText,
                         color = MaterialTheme.colorScheme.onError,
@@ -181,7 +193,7 @@ fun TopAppBarComposable(
                         onClick = onCloseClick
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.close),
+                            painter = painterResource(R.drawable.load),
                             contentDescription = "Close error"
                         )
                     }
@@ -189,5 +201,4 @@ fun TopAppBarComposable(
             }
         }
     }
-
 }
